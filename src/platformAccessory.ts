@@ -1,151 +1,210 @@
 import { Service, PlatformAccessory, CharacteristicValue, CharacteristicSetCallback, CharacteristicGetCallback } from 'homebridge';
 
-import { ExampleHomebridgePlatform } from './platform';
+import { MiAirPurifierPlatform } from './platform';
+
+import * as mihome from 'node-mihome'
 
 /**
  * Platform Accessory
  * An instance of this class is created for each accessory your platform registers
  * Each accessory may expose multiple services of different service types.
  */
-export class ExamplePlatformAccessory {
-  private service: Service;
-
-  /**
-   * These are just used to create a working example
-   * You should implement your own code to track the state of your accessory
-   */
-  private exampleStates = {
-    On: false,
-    Brightness: 100,
-  };
+export class MiAirPurifierAccessory {
+  private airPurifierService: Service;
+  private airQualityService: Service;
+  private temperatureService: Service;
+  private humidityService: Service;
 
   constructor(
-    private readonly platform: ExampleHomebridgePlatform,
+    private readonly platform: MiAirPurifierPlatform,
     private readonly accessory: PlatformAccessory,
+    private readonly device: mihome.Device,
+    private readonly info: any
   ) {
 
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Default-Manufacturer')
-      .setCharacteristic(this.platform.Characteristic.Model, 'Default-Model')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, 'Default-Serial');
+      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Xiaomi')
+      .setCharacteristic(this.platform.Characteristic.Model, info.model)
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, info.mac)
+      .setCharacteristic(this.platform.Characteristic.Name, info.name);
 
-    // get the LightBulb service if it exists, otherwise create a new LightBulb service
-    // you can create multiple services for each accessory
-    this.service = this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
+    // set Air Purifier services
+    this.airPurifierService = this.accessory.getService(this.platform.Service.AirPurifier)!;
+    this.airQualityService = this.accessory.getService(this.platform.Service.AirQualitySensor)!;
+    this.temperatureService = this.accessory.getService(this.platform.Service.TemperatureSensor)!;
+    this.humidityService = this.accessory.getService(this.platform.Service.HumiditySensor)!;
 
-    // set the service name, this is what is displayed as the default name on the Home app
-    // in this example we are using the name we stored in the `accessory.context` in the `discoverDevices` method.
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.exampleDisplayName);
+    // create handlers for required characteristics
+    this.airPurifierService.getCharacteristic(this.platform.Characteristic.Active)
+      .on('get', this.handleActiveGet.bind(this))
+      .on('set', this.handleActiveSet.bind(this));
+    
+    this.airPurifierService.getCharacteristic(this.platform.Characteristic.CurrentAirPurifierState)
+      .on('get', this.handleCurrentAirPurifierStateGet.bind(this));
+    
+    this.airPurifierService.getCharacteristic(this.platform.Characteristic.TargetAirPurifierState)
+      .on('get', this.handleTargetAirPurifierStateGet.bind(this))
+      .on('set', this.handleTargetAirPurifierStateSet.bind(this));
 
-    // each service must implement at-minimum the "required characteristics" for the given service type
-    // see https://developers.homebridge.io/#/service/Lightbulb
+    this.airQualityService.getCharacteristic(this.platform.Characteristic.AirQuality)
+      .on('get', this.handleAirQualityGet.bind(this));
 
-    // register handlers for the On/Off Characteristic
-    this.service.getCharacteristic(this.platform.Characteristic.On)
-      .on('set', this.setOn.bind(this))                // SET - bind to the `setOn` method below
-      .on('get', this.getOn.bind(this));               // GET - bind to the `getOn` method below
+    this.airQualityService.getCharacteristic(this.platform.Characteristic.PM2_5Density)
+      .on('get', this.handlePM2_5DensityGet.bind(this));
 
-    // register handlers for the Brightness Characteristic
-    this.service.getCharacteristic(this.platform.Characteristic.Brightness)
-      .on('set', this.setBrightness.bind(this));       // SET - bind to the 'setBrightness` method below
+    this.temperatureService.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
+      .on('get', this.handleCurrentTemperatureGet.bind(this));
 
-
-    /**
-     * Creating multiple services of the same type.
-     * 
-     * To avoid "Cannot add a Service with the same UUID another Service without also defining a unique 'subtype' property." error,
-     * when creating multiple services of the same type, you need to use the following syntax to specify a name and subtype id:
-     * this.accessory.getService('NAME') || this.accessory.addService(this.platform.Service.Lightbulb, 'NAME', 'USER_DEFINED_SUBTYPE_ID');
-     * 
-     * The USER_DEFINED_SUBTYPE must be unique to the platform accessory (if you platform exposes multiple accessories, each accessory
-     * can use the same sub type id.)
-     */
-
-    // Example: add two "motion sensor" services to the accessory
-    const motionSensorOneService = this.accessory.getService('Motion Sensor One Name') ||
-      this.accessory.addService(this.platform.Service.MotionSensor, 'Motion Sensor One Name', 'YourUniqueIdentifier-1');
-
-    const motionSensorTwoService = this.accessory.getService('Motion Sensor Two Name') ||
-      this.accessory.addService(this.platform.Service.MotionSensor, 'Motion Sensor Two Name', 'YourUniqueIdentifier-2');
-
-    /**
-     * Updating characteristics values asynchronously.
-     * 
-     * Example showing how to update the state of a Characteristic asynchronously instead
-     * of using the `on('get')` handlers.
-     * Here we change update the motion sensor trigger states on and off every 10 seconds
-     * the `updateCharacteristic` method.
-     * 
-     */
-    let motionDetected = false;
-    setInterval(() => {
-      // EXAMPLE - inverse the trigger
-      motionDetected = !motionDetected;
-
-      // push the new value to HomeKit
-      motionSensorOneService.updateCharacteristic(this.platform.Characteristic.MotionDetected, motionDetected);
-      motionSensorTwoService.updateCharacteristic(this.platform.Characteristic.MotionDetected, !motionDetected);
-
-      this.platform.log.debug('Triggering motionSensorOneService:', motionDetected);
-      this.platform.log.debug('Triggering motionSensorTwoService:', !motionDetected);
-    }, 10000);
+    this.humidityService.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
+      .on('get', this.handleCurrentRelativeHumidityGet.bind(this));
   }
 
   /**
-   * Handle "SET" requests from HomeKit
-   * These are sent when the user changes the state of an accessory, for example, turning on a Light bulb.
+   * Handle requests to get the current value of the "Active" characteristic
    */
-  setOn(value: CharacteristicValue, callback: CharacteristicSetCallback) {
+  handleActiveGet(callback) {
+    const getPower = (async function (device: mihome.Device, platform: MiAirPurifierPlatform) {
+      const isOn = await device.getPower();
 
-    // implement your own code to turn your device on/off
-    this.exampleStates.On = value as boolean;
+      if (isOn) {
+        callback(null, platform.Characteristic.Active.ACTIVE);
+      } else {
+        callback(null, platform.Characteristic.Active.INACTIVE);
+      }
+    });
 
-    this.platform.log.debug('Set Characteristic On ->', value);
-
-    // you must call the callback function
-    callback(null);
+    getPower(this.device, this.platform);
   }
 
   /**
-   * Handle the "GET" requests from HomeKit
-   * These are sent when HomeKit wants to know the current state of the accessory, for example, checking if a Light bulb is on.
-   * 
-   * GET requests should return as fast as possbile. A long delay here will result in
-   * HomeKit being unresponsive and a bad user experience in general.
-   * 
-   * If your device takes time to respond you should update the status of your device
-   * asynchronously instead using the `updateCharacteristic` method instead.
-
-   * @example
-   * this.service.updateCharacteristic(this.platform.Characteristic.On, true)
+   * Handle requests to set the "Active" characteristic
    */
-  getOn(callback: CharacteristicGetCallback) {
+  handleActiveSet(value, callback) {
+    const setPower = (async function (value: Boolean, device: mihome.Device, platform: MiAirPurifierPlatform) {
 
-    // implement your own code to check if the device is on
-    const isOn = this.exampleStates.On;
+      if (value) {
+        await device.setPower(true);
+      } else {
+        await device.setPower(false);
+      }
+      
+      callback(null);
+    });
 
-    this.platform.log.debug('Get Characteristic On ->', isOn);
-
-    // you must call the callback function
-    // the first argument should be null if there were no errors
-    // the second argument should be the value to return
-    callback(null, isOn);
+    setPower(value, this.device, this.platform);
   }
 
   /**
-   * Handle "SET" requests from HomeKit
-   * These are sent when the user changes the state of an accessory, for example, changing the Brightness
+   * Handle requests to get the current value of the "Current Air Purifier State" characteristic
    */
-  setBrightness(value: CharacteristicValue, callback: CharacteristicSetCallback) {
+  handleCurrentAirPurifierStateGet(callback) {
+    const getMode = (async function (device: mihome.Device, platform: MiAirPurifierPlatform) {
+      const isOn = await device.getPower();
 
-    // implement your own code to set the brightness
-    this.exampleStates.Brightness = value as number;
+      if (isOn) {
+        callback(null, platform.Characteristic.CurrentAirPurifierState.PURIFYING_AIR);
+      } else {
+        callback(null, platform.Characteristic.CurrentAirPurifierState.INACTIVE);
+      }
+    });
 
-    this.platform.log.debug('Set Characteristic Brightness -> ', value);
-
-    // you must call the callback function
-    callback(null);
+    getMode(this.device, this.platform);
   }
 
+
+  /**
+   * Handle requests to get the current value of the "Target Air Purifier State" characteristic
+   */
+  handleTargetAirPurifierStateGet(callback) {
+    const getMode = (async function (device: mihome.Device, platform: MiAirPurifierPlatform) {
+      const mode = await device.getMode();
+
+      if (mode == "auto") {
+        callback(null, platform.Characteristic.TargetAirPurifierState.AUTO);
+      } else {
+        callback(null, platform.Characteristic.TargetAirPurifierState.MANUAL);
+      }
+    });
+
+    getMode(this.device, this.platform);
+  }
+
+  /**
+   * Handle requests to set the "Target Air Purifier State" characteristic
+   */
+  handleTargetAirPurifierStateSet(value, callback) {
+    const setMode = (async function (value: any, device: mihome.Device, platform: MiAirPurifierPlatform) {
+
+      // Set mode is not defined
+      // if (value == platform.Characteristic.TargetAirPurifierState.AUTO) {
+      //   await device.setMode("auto");
+      // } else {
+      //   await device.setMode("favorite");
+      // }
+
+      callback(null);
+    });
+
+    setMode(value, this.device, this.platform);
+  }
+
+  /**
+   * Handle requests to get the current value of the "Air Quality" characteristic
+   */
+  handleAirQualityGet(callback) {
+    const getValue = (async function (device: mihome.Device, platform: MiAirPurifierPlatform) {
+      const value = await device.getPM2_5();
+
+      if (value < 20) {
+        callback(null, platform.Characteristic.AirQuality.EXCELLENT);
+      } else if (value < 50) {
+        callback(null, platform.Characteristic.AirQuality.GOOD);
+      } else if (value < 100) {
+        callback(null, platform.Characteristic.AirQuality.FAIR);
+      } else if (value < 150) {
+        callback(null, platform.Characteristic.AirQuality.INFERIOR);
+      } else {
+        callback(null, platform.Characteristic.AirQuality.POOR);
+      }
+    });
+
+    getValue(this.device, this.platform);
+  }
+
+  /**
+   * Handle requests to get the current value of the "PM2.5" characteristic
+   */
+  handlePM2_5DensityGet(callback) {
+    const getValue = (async function (device: mihome.Device, platform: MiAirPurifierPlatform) {
+      const value = await device.getPM2_5();
+      callback(null, value);
+    });
+
+    getValue(this.device, this.platform);
+  }
+
+  /**
+   * Handle requests to get the current value of the "Current Temperature" characteristic
+   */
+  handleCurrentTemperatureGet(callback) {
+    const getValue = (async function (device: mihome.Device, platform: MiAirPurifierPlatform) {
+      const value = await device.getTemperature();
+      callback(null, value);
+    });
+
+    getValue(this.device, this.platform);
+  }
+
+  /**
+   * Handle requests to get the current value of the "Current Relative Humidity" characteristic
+   */
+  handleCurrentRelativeHumidityGet(callback) {
+    const getValue = (async function (device: mihome.Device, platform: MiAirPurifierPlatform) {
+      const value = await device.getHumidity();
+      callback(null, value);
+    });
+
+    getValue(this.device, this.platform);
+  }
 }
