@@ -7,10 +7,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/USERNAME/GITHUB_PROJECT_NAME.git"
+    "url": "git://github.com/bestK1ngArthur/homebridge-mi-air-purifier.git"
   },
   "bugs": {
-    "url": "https://github.com/USERNAME/GITHUB_PROJECT_NAME/issues"
+    "url": "https://github.com/bestK1ngArthur/homebridge-mi-air-purifier/issues"
   },
   "engines": {
     "node": ">=10.17.0",
