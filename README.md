@@ -1,11 +1,29 @@
+# Mi Air Purifier Plugin
 
-<p align="center">
+Control Mi Air Purifiers via homebridge. No need to get device token.
 
-<img src="https://github.com/homebridge/branding/raw/master/logos/homebridge-wordmark-logo-vertical.png" width="150">
+## Tested devices
 
-</p>
+- [x]  **Mi Air Purifier 3** (zhimi.airpurifier.ma4)
 
+## Install
 
-# Homebridge Mi Air Purifier Plugin
+1. Install node package.
 
-Tested on Mi Purrifier 3
+```
+npm install -g git+https://github.com/bestK1ngArthur/homebridge-mi-air-purifier
+```
+
+2. Add platform to config.
+```
+"platforms": [
+  {
+    "platform": "MiAirPurifierPlugin",
+    "login": "PHONE (+XXXXXXXXXXX) or EMAIL",
+    "password": "PASSWORD",
+    "country": "cn"
+  }
+]
+```
+
+3. Restart homebridge server.
