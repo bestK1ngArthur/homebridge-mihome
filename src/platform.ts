@@ -3,7 +3,7 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { MiAirPurifierAccessory } from './platformAccessory';
 
-import * as mihome from 'node-mihome'
+import * as mihome from 'node-mihome';
 
 /**
  * HomebridgePlatform
@@ -74,8 +74,8 @@ export class MiAirPurifierPlatform implements DynamicPlatformPlugin {
             model: rawDevice.model,
             address: rawDevice.localip,
             token: rawDevice.token,
-            refresh: 30000
-          })
+            refresh: 30000,
+          });
 
           await device.init();
           
