@@ -102,8 +102,6 @@ export class MiHomePlatform implements DynamicPlatformPlugin {
 
   configureNewAirHumidifier(accessory: PlatformAccessory, device: mihome.device, rawDevice: any) {
 
-    this.log.info('configureNewAirHumidifier ' + rawDevice.name);
-
     const humidifierService = new this.Service.HumidifierDehumidifier(rawDevice.name);
     accessory.addService(humidifierService);
 
@@ -126,7 +124,7 @@ export class MiHomePlatform implements DynamicPlatformPlugin {
         const model = rawDevice.model;
         const mac = rawDevice.mac;
 
-        platform.log.info('Get device with model = ' + model);
+        platform.log.info('Find device with model ' + model);
 
         if (!(model.includes('airpurifier')) && !(model.includes('humidifier'))) {
           continue;
