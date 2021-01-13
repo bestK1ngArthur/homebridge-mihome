@@ -1,4 +1,4 @@
-# Mi Air Purifier Plugin
+# MiHome Plugin
 
 Control MiHome devices via homebridge. No need to get device token.
 
