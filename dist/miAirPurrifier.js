@@ -60,7 +60,7 @@ class MiAirPurifierAccessory {
      * Handle requests to set the "Active" characteristic
      */
     handleActiveSet(value, callback) {
-        const setPower = (async function (value, device, platform) {
+        const setPower = (async function (value, device) {
             if (value) {
                 await device.setPower(true);
             }
@@ -69,7 +69,7 @@ class MiAirPurifierAccessory {
             }
             callback(null);
         });
-        setPower(value, this.device, this.platform);
+        setPower(value, this.device);
     }
     /**
      * Handle requests to get the current value of the "Current Air Purifier State" characteristic
@@ -92,7 +92,7 @@ class MiAirPurifierAccessory {
     handleTargetAirPurifierStateGet(callback) {
         const getMode = (async function (device, platform) {
             const mode = await device.getMode();
-            if (mode == "auto") {
+            if (mode === 'auto') {
                 callback(null, platform.Characteristic.TargetAirPurifierState.AUTO);
             }
             else {
@@ -105,7 +105,7 @@ class MiAirPurifierAccessory {
      * Handle requests to set the "Target Air Purifier State" characteristic
      */
     handleTargetAirPurifierStateSet(value, callback) {
-        const setMode = (async function (value, device, platform) {
+        const setMode = (async function () {
             // Set mode is not defined
             // if (value == platform.Characteristic.TargetAirPurifierState.AUTO) {
             //   await device.setMode("auto");
@@ -114,7 +114,7 @@ class MiAirPurifierAccessory {
             // }
             callback(null);
         });
-        setMode(value, this.device, this.platform);
+        setMode();
     }
     /**
      * Handle requests to get the current value of the "Air Quality" characteristic
@@ -144,32 +144,32 @@ class MiAirPurifierAccessory {
      * Handle requests to get the current value of the "PM2.5" characteristic
      */
     handlePM2_5DensityGet(callback) {
-        const getValue = (async function (device, platform) {
+        const getValue = (async function (device) {
             const value = await device.getPM2_5();
             callback(null, value);
         });
-        getValue(this.device, this.platform);
+        getValue(this.device);
     }
     /**
      * Handle requests to get the current value of the "Current Temperature" characteristic
      */
     handleCurrentTemperatureGet(callback) {
-        const getValue = (async function (device, platform) {
+        const getValue = (async function (device) {
             const value = await device.getTemperature();
             callback(null, value);
         });
-        getValue(this.device, this.platform);
+        getValue(this.device);
     }
     /**
      * Handle requests to get the current value of the "Current Relative Humidity" characteristic
      */
     handleCurrentRelativeHumidityGet(callback) {
-        const getValue = (async function (device, platform) {
+        const getValue = (async function (device) {
             const value = await device.getHumidity();
             callback(null, value);
         });
-        getValue(this.device, this.platform);
+        getValue(this.device);
     }
 }
 exports.MiAirPurifierAccessory = MiAirPurifierAccessory;
-//# sourceMappingURL=platformAccessory.js.map
+//# sourceMappingURL=miAirPurrifier.js.map

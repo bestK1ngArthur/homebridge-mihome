@@ -19,16 +19,17 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MiAirPurifierPlatform = void 0;
+exports.MiHomePlatform = void 0;
 const settings_1 = require("./settings");
-const platformAccessory_1 = require("./platformAccessory");
+const miAirPurrifier_1 = require("./miAirPurrifier");
+const miAirHumidifier_1 = require("./miAirHumidifier");
 const mihome = __importStar(require("node-mihome"));
 /**
  * HomebridgePlatform
  * This class is the main constructor for your plugin, this is where you should
  * parse the user config and discover/register accessories with Homebridge.
  */
-class MiAirPurifierPlatform {
+class MiHomePlatform {
     constructor(log, config, api) {
         this.log = log;
         this.config = config;
@@ -54,11 +55,56 @@ class MiAirPurifierPlatform {
         // add the restored accessory to the accessories cache so we can track if it has already been registered
         this.accessories.push(accessory);
     }
-    /**
-     * This is an example method showing how to register discovered accessories.
-     * Accessories must only be registered once, previously created accessories
-     * must not be registered again to prevent "duplicate UUID" errors.
-     */
+    configureExistingAccessory(model, accessory, device, rawDevice) {
+        if (model.includes('airpurifier')) {
+            this.configureExistingAirPurifier(accessory, device, rawDevice);
+        }
+        else if (model.includes('humidifier')) {
+            this.configureExistingAirHumidifier(accessory, device, rawDevice);
+        }
+    }
+    configureExistingAirPurifier(accessory, device, rawDevice) {
+        new miAirPurrifier_1.MiAirPurifierAccessory(this, accessory, device, rawDevice);
+    }
+    configureExistingAirHumidifier(accessory, device, rawDevice) {
+        new miAirHumidifier_1.MiAirHumidifierAccessory(this, accessory, device, rawDevice);
+    }
+    configureNewAccessory(model, mac, uuid, device, rawDevice) {
+        // create a new accessory
+        const accessory = new this.api.platformAccessory(mac, uuid);
+        if (model.includes('airpurifier')) {
+            this.configureNewAirPurifier(accessory, device, rawDevice);
+        }
+        else if (model.includes('humidifier')) {
+            this.configureNewAirHumidifier(accessory, device, rawDevice);
+        }
+        // store a copy of the device object in the `accessory.context`
+        // the `context` property can be used to store any data about the accessory you may need
+        accessory.context.device = rawDevice;
+        // link the accessory to your platform
+        this.api.registerPlatformAccessories(settings_1.PLUGIN_NAME, settings_1.PLATFORM_NAME, [accessory]);
+    }
+    configureNewAirPurifier(accessory, device, rawDevice) {
+        const airPurifierService = new this.Service.AirPurifier(rawDevice.name);
+        accessory.addService(airPurifierService);
+        const airQualitySensor = new this.Service.AirQualitySensor(rawDevice.name);
+        accessory.addService(airQualitySensor);
+        const temperatureSensor = new this.Service.TemperatureSensor(rawDevice.name);
+        accessory.addService(temperatureSensor);
+        const humiditySensor = new this.Service.HumiditySensor(rawDevice.name);
+        accessory.addService(humiditySensor);
+        // create the accessory handler for the newly create accessory
+        new miAirPurrifier_1.MiAirPurifierAccessory(this, accessory, device, rawDevice);
+    }
+    configureNewAirHumidifier(accessory, device, rawDevice) {
+        this.log.info('configureNewAirHumidifier ' + rawDevice.name);
+        const humidifierService = new this.Service.HumidifierDehumidifier(rawDevice.name);
+        accessory.addService(humidifierService);
+        const temperatureSensor = new this.Service.TemperatureSensor(rawDevice.name);
+        accessory.addService(temperatureSensor);
+        // create the accessory handler for the newly create accessory
+        new miAirHumidifier_1.MiAirHumidifierAccessory(this, accessory, device, rawDevice);
+    }
     discoverDevices() {
         const options = { country: this.config.country };
         const getDevices = (async function (platform) {
@@ -68,69 +114,55 @@ class MiAirPurifierPlatform {
             for (const rawDevice of rawDevices) {
                 const model = rawDevice.model;
                 const mac = rawDevice.mac;
-                if (model.includes('airpurifier')) {
-                    // generate a unique id for the accessory this should be generated from
-                    // something globally unique, but constant, for example, the device serial
-                    // number or MAC address
-                    const uuid = platform.api.hap.uuid.generate(mac);
-                    // see if an accessory with the same uuid has already been registered and restored from
-                    // the cached devices we stored in the `configureAccessory` method above
-                    const existingAccessory = platform.accessories.find(accessory => accessory.UUID === uuid);
-                    const device = mihome.device({
-                        id: rawDevice.did,
-                        model: rawDevice.model,
-                        address: rawDevice.localip,
-                        token: rawDevice.token,
-                        refresh: 30000
-                    });
-                    await device.init();
-                    if (existingAccessory) {
-                        // the accessory already exists
-                        if (rawDevice) {
-                            platform.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
-                            // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-                            // existingAccessory.context.device = device;
-                            // this.api.updatePlatformAccessories([existingAccessory]);
-                            // create the accessory handler for the restored accessory
-                            // this is imported from `platformAccessory.ts`
-                            new platformAccessory_1.MiAirPurifierAccessory(platform, existingAccessory, device, rawDevice);
-                            // update accessory cache with any changes to the accessory details and information
-                            platform.api.updatePlatformAccessories([existingAccessory]);
-                        }
-                        else if (!rawDevice) {
-                            // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
-                            // remove platform accessories when no longer present
-                            platform.api.unregisterPlatformAccessories(settings_1.PLUGIN_NAME, settings_1.PLATFORM_NAME, [existingAccessory]);
-                            platform.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
-                        }
-                    }
-                    else {
-                        // the accessory does not yet exist, so we need to create it
-                        platform.log.info('Adding new accessory: ', mac);
-                        // create a new accessory
-                        const accessory = new platform.api.platformAccessory(mac, uuid);
-                        const airPurifierService = new platform.Service.AirPurifier(rawDevice.name);
-                        accessory.addService(airPurifierService);
-                        const airQualitySensor = new platform.Service.AirQualitySensor(rawDevice.name);
-                        accessory.addService(airQualitySensor);
-                        const temperatureSensor = new platform.Service.TemperatureSensor(rawDevice.name);
-                        accessory.addService(temperatureSensor);
-                        const humiditySensor = new platform.Service.HumiditySensor(rawDevice.name);
-                        accessory.addService(humiditySensor);
-                        // store a copy of the device object in the `accessory.context`
-                        // the `context` property can be used to store any data about the accessory you may need
-                        accessory.context.device = rawDevice;
-                        // create the accessory handler for the newly create accessory
+                platform.log.info('Get device with model = ' + model);
+                if (!(model.includes('airpurifier')) && !(model.includes('humidifier'))) {
+                    continue;
+                }
+                // generate a unique id for the accessory this should be generated from
+                // something globally unique, but constant, for example, the device serial
+                // number or MAC address
+                const uuid = platform.api.hap.uuid.generate(mac);
+                // see if an accessory with the same uuid has already been registered and restored from
+                // the cached devices we stored in the `configureAccessory` method above
+                const existingAccessory = platform.accessories.find(accessory => accessory.UUID === uuid);
+                const device = mihome.device({
+                    id: rawDevice.did,
+                    model: rawDevice.model,
+                    address: rawDevice.localip,
+                    token: rawDevice.token,
+                    refresh: 30000,
+                });
+                await device.init();
+                if (existingAccessory) {
+                    // the accessory already exists
+                    if (rawDevice) {
+                        platform.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+                        // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
+                        // existingAccessory.context.device = device;
+                        // this.api.updatePlatformAccessories([existingAccessory]);
+                        // create the accessory handler for the restored accessory
                         // this is imported from `platformAccessory.ts`
-                        new platformAccessory_1.MiAirPurifierAccessory(platform, accessory, device, rawDevice);
-                        // link the accessory to your platform
-                        platform.api.registerPlatformAccessories(settings_1.PLUGIN_NAME, settings_1.PLATFORM_NAME, [accessory]);
+                        platform.configureExistingAccessory(model, existingAccessory, device, rawDevice);
+                        // update accessory cache with any changes to the accessory details and information
+                        platform.api.updatePlatformAccessories([existingAccessory]);
                     }
+                    else if (!rawDevice) {
+                        // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
+                        // remove platform accessories when no longer present
+                        platform.api.unregisterPlatformAccessories(settings_1.PLUGIN_NAME, settings_1.PLATFORM_NAME, [existingAccessory]);
+                        platform.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
+                    }
+                }
+                else {
+                    // the accessory does not yet exist, so we need to create it
+                    platform.log.info('Adding new accessory: ', mac);
+                    // create a new accessory
+                    platform.configureNewAccessory(model, mac, uuid, device, rawDevice);
                 }
             }
         });
         getDevices(this);
     }
 }
-exports.MiAirPurifierPlatform = MiAirPurifierPlatform;
+exports.MiHomePlatform = MiHomePlatform;
 //# sourceMappingURL=platform.js.map

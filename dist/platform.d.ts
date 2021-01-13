@@ -1,10 +1,11 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
+import * as mihome from 'node-mihome';
 /**
  * HomebridgePlatform
  * This class is the main constructor for your plugin, this is where you should
  * parse the user config and discover/register accessories with Homebridge.
  */
-export declare class MiAirPurifierPlatform implements DynamicPlatformPlugin {
+export declare class MiHomePlatform implements DynamicPlatformPlugin {
     readonly log: Logger;
     readonly config: PlatformConfig;
     readonly api: API;
@@ -17,11 +18,12 @@ export declare class MiAirPurifierPlatform implements DynamicPlatformPlugin {
      * It should be used to setup event handlers for characteristics and update respective values.
      */
     configureAccessory(accessory: PlatformAccessory): void;
-    /**
-     * This is an example method showing how to register discovered accessories.
-     * Accessories must only be registered once, previously created accessories
-     * must not be registered again to prevent "duplicate UUID" errors.
-     */
+    configureExistingAccessory(model: string, accessory: PlatformAccessory, device: mihome.device, rawDevice: any): void;
+    configureExistingAirPurifier(accessory: PlatformAccessory, device: mihome.device, rawDevice: any): void;
+    configureExistingAirHumidifier(accessory: PlatformAccessory, device: mihome.device, rawDevice: any): void;
+    configureNewAccessory(model: string, mac: string, uuid: string, device: mihome.device, rawDevice: any): void;
+    configureNewAirPurifier(accessory: PlatformAccessory, device: mihome.device, rawDevice: any): void;
+    configureNewAirHumidifier(accessory: PlatformAccessory, device: mihome.device, rawDevice: any): void;
     discoverDevices(): void;
 }
 //# sourceMappingURL=platform.d.ts.map

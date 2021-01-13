@@ -1,5 +1,5 @@
 import { PlatformAccessory } from 'homebridge';
-import { MiAirPurifierPlatform } from './platform';
+import { MiHomePlatform } from './platform';
 import * as mihome from 'node-mihome';
 /**
  * Platform Accessory
@@ -15,7 +15,7 @@ export declare class MiAirPurifierAccessory {
     private airQualityService;
     private temperatureService;
     private humidityService;
-    constructor(platform: MiAirPurifierPlatform, accessory: PlatformAccessory, device: mihome.Device, info: any);
+    constructor(platform: MiHomePlatform, accessory: PlatformAccessory, device: mihome.Device, info: any);
     /**
      * Handle requests to get the current value of the "Active" characteristic
      */
@@ -53,4 +53,4 @@ export declare class MiAirPurifierAccessory {
      */
     handleCurrentRelativeHumidityGet(callback: any): void;
 }
-//# sourceMappingURL=platformAccessory.d.ts.map
+//# sourceMappingURL=miAirPurrifier.d.ts.map

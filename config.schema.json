@@ -1,15 +1,15 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "MiHomePlugin",
   "pluginType": "platform",
   "singular": true,
   "schema": {
     "type": "object",
     "properties": {
       "name": {
-        "title": "Name",
+        "title": "Mi Home Plugin",
         "type": "string",
         "required": true,
-        "default": "Example Dynamic Platform"
+        "default": "Get information and controll Xiaomi Mi devices."
       }
     }
   }
