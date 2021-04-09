@@ -97,7 +97,6 @@ class MiHomePlatform {
         new miAirPurrifier_1.MiAirPurifierAccessory(this, accessory, device, rawDevice);
     }
     configureNewAirHumidifier(accessory, device, rawDevice) {
-        this.log.info('configureNewAirHumidifier ' + rawDevice.name);
         const humidifierService = new this.Service.HumidifierDehumidifier(rawDevice.name);
         accessory.addService(humidifierService);
         const temperatureSensor = new this.Service.TemperatureSensor(rawDevice.name);
@@ -109,56 +108,61 @@ class MiHomePlatform {
         const options = { country: this.config.country };
         const getDevices = (async function (platform) {
             mihome.miioProtocol.init();
-            await mihome.miCloudProtocol.login(platform.config.login, platform.config.password);
-            const rawDevices = await mihome.miCloudProtocol.getDevices(null, options);
-            for (const rawDevice of rawDevices) {
-                const model = rawDevice.model;
-                const mac = rawDevice.mac;
-                platform.log.info('Get device with model = ' + model);
-                if (!(model.includes('airpurifier')) && !(model.includes('humidifier'))) {
-                    continue;
-                }
-                // generate a unique id for the accessory this should be generated from
-                // something globally unique, but constant, for example, the device serial
-                // number or MAC address
-                const uuid = platform.api.hap.uuid.generate(mac);
-                // see if an accessory with the same uuid has already been registered and restored from
-                // the cached devices we stored in the `configureAccessory` method above
-                const existingAccessory = platform.accessories.find(accessory => accessory.UUID === uuid);
-                const device = mihome.device({
-                    id: rawDevice.did,
-                    model: rawDevice.model,
-                    address: rawDevice.localip,
-                    token: rawDevice.token,
-                    refresh: 30000,
-                });
-                await device.init();
-                if (existingAccessory) {
-                    // the accessory already exists
-                    if (rawDevice) {
-                        platform.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
-                        // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-                        // existingAccessory.context.device = device;
-                        // this.api.updatePlatformAccessories([existingAccessory]);
-                        // create the accessory handler for the restored accessory
-                        // this is imported from `platformAccessory.ts`
-                        platform.configureExistingAccessory(model, existingAccessory, device, rawDevice);
-                        // update accessory cache with any changes to the accessory details and information
-                        platform.api.updatePlatformAccessories([existingAccessory]);
+            try {
+                await mihome.miCloudProtocol.login(platform.config.login, platform.config.password);
+                const rawDevices = await mihome.miCloudProtocol.getDevices(null, options);
+                for (const rawDevice of rawDevices) {
+                    const model = rawDevice.model;
+                    const mac = rawDevice.mac;
+                    platform.log.info('Find device with model ' + model);
+                    if (!(model.includes('airpurifier')) && !(model.includes('humidifier'))) {
+                        continue;
                     }
-                    else if (!rawDevice) {
-                        // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
-                        // remove platform accessories when no longer present
-                        platform.api.unregisterPlatformAccessories(settings_1.PLUGIN_NAME, settings_1.PLATFORM_NAME, [existingAccessory]);
-                        platform.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
+                    // generate a unique id for the accessory this should be generated from
+                    // something globally unique, but constant, for example, the device serial
+                    // number or MAC address
+                    const uuid = platform.api.hap.uuid.generate(mac);
+                    // see if an accessory with the same uuid has already been registered and restored from
+                    // the cached devices we stored in the `configureAccessory` method above
+                    const existingAccessory = platform.accessories.find(accessory => accessory.UUID === uuid);
+                    const device = mihome.device({
+                        id: rawDevice.did,
+                        model: rawDevice.model,
+                        address: rawDevice.localip,
+                        token: rawDevice.token,
+                        refresh: 30000,
+                    });
+                    await device.init();
+                    if (existingAccessory) {
+                        // the accessory already exists
+                        if (rawDevice) {
+                            platform.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+                            // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
+                            // existingAccessory.context.device = device;
+                            // this.api.updatePlatformAccessories([existingAccessory]);
+                            // create the accessory handler for the restored accessory
+                            // this is imported from `platformAccessory.ts`
+                            platform.configureExistingAccessory(model, existingAccessory, device, rawDevice);
+                            // update accessory cache with any changes to the accessory details and information
+                            platform.api.updatePlatformAccessories([existingAccessory]);
+                        }
+                        else if (!rawDevice) {
+                            // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
+                            // remove platform accessories when no longer present
+                            platform.api.unregisterPlatformAccessories(settings_1.PLUGIN_NAME, settings_1.PLATFORM_NAME, [existingAccessory]);
+                            platform.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
+                        }
+                    }
+                    else {
+                        // the accessory does not yet exist, so we need to create it
+                        platform.log.info('Adding new accessory: ', mac);
+                        // create a new accessory
+                        platform.configureNewAccessory(model, mac, uuid, device, rawDevice);
                     }
                 }
-                else {
-                    // the accessory does not yet exist, so we need to create it
-                    platform.log.info('Adding new accessory: ', mac);
-                    // create a new accessory
-                    platform.configureNewAccessory(model, mac, uuid, device, rawDevice);
-                }
+            }
+            catch (error) {
+                platform.log.info('Mi server error: ' + error);
             }
         });
         getDevices(this);
