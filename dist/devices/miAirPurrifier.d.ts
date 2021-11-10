@@ -23,23 +23,23 @@ export declare class MiAirPurifierAccessory {
      */
     handleActiveSet(value: any, callback: any): void;
     /**
-     * Handle requests to get the current value of the "Current Air Purifier State" characteristic
+     * Handle requests to get the current value of the "Current State" characteristic
      */
     handleCurrentStateGet(callback: any): void;
     /**
-     * Handle requests to get the current value of the "Target Air Purifier State" characteristic
+     * Handle requests to get the current value of the "Target State" characteristic
      */
     handleTargetStateGet(callback: any): void;
     /**
-     * Handle requests to set the "Target Air Purifier State" characteristic
+     * Handle requests to set the "Target State" characteristic
      */
     handleTargetStateSet(value: any, callback: any): void;
     /**
-    * Handle requests to get the current value of the "Target Air Purifier State" characteristic
+    * Handle requests to get the current value of the "Rotation Speed" characteristic
     */
     handleRotationSpeedGet(callback: any): void;
     /**
-     * Handle requests to set the "Target Air Purifier State" characteristic
+     * Handle requests to set the "Rotation Speed" characteristic
      */
     handleRotationSpeedSet(value: any, callback: any): void;
     /**

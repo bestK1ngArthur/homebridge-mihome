@@ -93,7 +93,7 @@ export class MiAirPurifierAccessory {
   }
 
   /**
-   * Handle requests to get the current value of the "Current Air Purifier State" characteristic
+   * Handle requests to get the current value of the "Current State" characteristic
    */
   handleCurrentStateGet(callback: any) {
     const getMode = (async function (device: mihome.Device, platform: MiHomePlatform) {
@@ -110,7 +110,7 @@ export class MiAirPurifierAccessory {
   }
 
   /**
-   * Handle requests to get the current value of the "Target Air Purifier State" characteristic
+   * Handle requests to get the current value of the "Target State" characteristic
    */
   handleTargetStateGet(callback: any) {
     const getMode = (async function (device: mihome.Device, platform: MiHomePlatform) {
@@ -127,7 +127,7 @@ export class MiAirPurifierAccessory {
   }
 
   /**
-   * Handle requests to set the "Target Air Purifier State" characteristic
+   * Handle requests to set the "Target State" characteristic
    */
   handleTargetStateSet(value: any, callback: any) {
     const setMode = (async function () {
@@ -146,30 +146,47 @@ export class MiAirPurifierAccessory {
   }
 
   /**
-  * Handle requests to get the current value of the "Target Air Purifier State" characteristic
+  * Handle requests to get the current value of the "Rotation Speed" characteristic
   */
   handleRotationSpeedGet(callback: any) {
     const getMode = (async function (device: mihome.Device, platform: MiHomePlatform) {
-      const mode = await device.getMode();
-      const properties = await device.properties
-      platform.log.info('Properties: ', properties);
+      const fanLevel = await device.getFanLevel();
+      var rotationSpeed = 0;
 
-      callback(null, 10)
+      if (fanLevel == 1) {
+        rotationSpeed = 100 / 3;
+      } else if (fanLevel == 2) {
+        rotationSpeed = 100 / 3 * 2;
+      } else if (fanLevel == 3) {
+        rotationSpeed = 100;
+      }
+
+      callback(null, rotationSpeed)
     });
 
     getMode(this.device, this.platform);
   }
 
   /**
-   * Handle requests to set the "Target Air Purifier State" characteristic
+   * Handle requests to set the "Rotation Speed" characteristic
    */
   handleRotationSpeedSet(value: any, callback: any) {
-    const setMode = (async function () {
+    const setMode = (async function (device: mihome.Device) {
+      var fanLevel;
 
+      if (value < (100 / 3)) {
+        fanLevel = 1;
+      } else if (value < (100 / 3 * 2)) {
+        fanLevel = 2;
+      } else {
+        fanLevel = 3;
+      }
+
+      await device.setFanLevel(fanLevel)
       callback(null);
     });
 
-    setMode();
+    setMode(this.device);
   }
 
   /**
