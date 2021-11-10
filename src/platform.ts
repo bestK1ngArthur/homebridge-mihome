@@ -1,16 +1,16 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { MiAirPurifierAccessory } from './miAirPurrifier';
-import { MiAirHumidifierAccessory } from './miAirHumidifier';
+import { MiAirPurifierAccessory } from './devices/miAirPurrifier';
+import { MiAirHumidifierAccessory } from './devices/miAirHumidifier';
 
 import * as mihome from 'node-mihome';
 import { platform } from 'os';
 
+export const ManufacturerName = "Xiaomi";
+
 /**
- * HomebridgePlatform
- * This class is the main constructor for your plugin, this is where you should
- * parse the user config and discover/register accessories with Homebridge.
+ * Mi Home Platform
  */
 export class MiHomePlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
@@ -121,12 +121,14 @@ export class MiHomePlatform implements DynamicPlatformPlugin {
       try {
         await mihome.miCloudProtocol.login(platform.config.login, platform.config.password);
         const rawDevices = await mihome.miCloudProtocol.getDevices(null, options);
-        
+
+        platform.log.info('Got ', rawDevices.length, ' devices');
+
         for (const rawDevice of rawDevices) {
           const model = rawDevice.model;
           const mac = rawDevice.mac;
   
-          platform.log.info('Find device with model ' + model);
+          platform.log.info('Found device with model ' + model);
   
           if (!(model.includes('airpurifier')) && !(model.includes('humidifier'))) {
             continue;
@@ -186,7 +188,7 @@ export class MiHomePlatform implements DynamicPlatformPlugin {
           }
         }
       } catch(error) {
-        platform.log.info(error);
+        platform.log.info(String(error));
       }
     });
 

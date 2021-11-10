@@ -1,10 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MiAirHumidifierAccessory = void 0;
+const platform_1 = require("../platform");
 /**
- * Platform Accessory
- * An instance of this class is created for each accessory your platform registers
- * Each accessory may expose multiple services of different service types.
+ * Mi Air Humidifier Accessory
  */
 class MiAirHumidifierAccessory {
     constructor(platform, accessory, device, info) {
@@ -14,7 +13,7 @@ class MiAirHumidifierAccessory {
         this.info = info;
         // set accessory information
         this.accessory.getService(this.platform.Service.AccessoryInformation)
-            .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Xiaomi')
+            .setCharacteristic(this.platform.Characteristic.Manufacturer, platform_1.ManufacturerName)
             .setCharacteristic(this.platform.Characteristic.Model, info.model)
             .setCharacteristic(this.platform.Characteristic.SerialNumber, info.mac)
             .setCharacteristic(this.platform.Characteristic.Name, info.name);

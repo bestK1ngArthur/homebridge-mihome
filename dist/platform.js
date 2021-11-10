@@ -19,15 +19,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MiHomePlatform = void 0;
+exports.MiHomePlatform = exports.ManufacturerName = void 0;
 const settings_1 = require("./settings");
-const miAirPurrifier_1 = require("./miAirPurrifier");
-const miAirHumidifier_1 = require("./miAirHumidifier");
+const miAirPurrifier_1 = require("./devices/miAirPurrifier");
+const miAirHumidifier_1 = require("./devices/miAirHumidifier");
 const mihome = __importStar(require("node-mihome"));
+exports.ManufacturerName = "Xiaomi";
 /**
- * HomebridgePlatform
- * This class is the main constructor for your plugin, this is where you should
- * parse the user config and discover/register accessories with Homebridge.
+ * Mi Home Platform
  */
 class MiHomePlatform {
     constructor(log, config, api) {
@@ -111,10 +110,11 @@ class MiHomePlatform {
             try {
                 await mihome.miCloudProtocol.login(platform.config.login, platform.config.password);
                 const rawDevices = await mihome.miCloudProtocol.getDevices(null, options);
+                platform.log.info('Got ', rawDevices.length, ' devices');
                 for (const rawDevice of rawDevices) {
                     const model = rawDevice.model;
                     const mac = rawDevice.mac;
-                    platform.log.info('Find device with model ' + model);
+                    platform.log.info('Found device with model ' + model);
                     if (!(model.includes('airpurifier')) && !(model.includes('humidifier'))) {
                         continue;
                     }
@@ -162,7 +162,7 @@ class MiHomePlatform {
                 }
             }
             catch (error) {
-                platform.log.info('Mi server error: ' + error);
+                platform.log.info(String(error));
             }
         });
         getDevices(this);

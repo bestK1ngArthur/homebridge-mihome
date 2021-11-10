@@ -1,10 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MiAirPurifierAccessory = void 0;
+const platform_1 = require("../platform");
 /**
- * Platform Accessory
- * An instance of this class is created for each accessory your platform registers
- * Each accessory may expose multiple services of different service types.
+ * Mi Air Purifier Accessory
  */
 class MiAirPurifierAccessory {
     constructor(platform, accessory, device, info) {
@@ -12,26 +11,26 @@ class MiAirPurifierAccessory {
         this.accessory = accessory;
         this.device = device;
         this.info = info;
-        // set accessory information
         this.accessory.getService(this.platform.Service.AccessoryInformation)
-            .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Xiaomi')
+            .setCharacteristic(this.platform.Characteristic.Manufacturer, platform_1.ManufacturerName)
             .setCharacteristic(this.platform.Characteristic.Model, info.model)
             .setCharacteristic(this.platform.Characteristic.SerialNumber, info.mac)
             .setCharacteristic(this.platform.Characteristic.Name, info.name);
-        // set Air Purifier services
         this.airPurifierService = this.accessory.getService(this.platform.Service.AirPurifier);
         this.airQualityService = this.accessory.getService(this.platform.Service.AirQualitySensor);
         this.temperatureService = this.accessory.getService(this.platform.Service.TemperatureSensor);
         this.humidityService = this.accessory.getService(this.platform.Service.HumiditySensor);
-        // create handlers for required characteristics
         this.airPurifierService.getCharacteristic(this.platform.Characteristic.Active)
             .on('get', this.handleActiveGet.bind(this))
             .on('set', this.handleActiveSet.bind(this));
         this.airPurifierService.getCharacteristic(this.platform.Characteristic.CurrentAirPurifierState)
-            .on('get', this.handleCurrentAirPurifierStateGet.bind(this));
+            .on('get', this.handleCurrentStateGet.bind(this));
         this.airPurifierService.getCharacteristic(this.platform.Characteristic.TargetAirPurifierState)
-            .on('get', this.handleTargetAirPurifierStateGet.bind(this))
-            .on('set', this.handleTargetAirPurifierStateSet.bind(this));
+            .on('get', this.handleTargetStateGet.bind(this))
+            .on('set', this.handleTargetStateSet.bind(this));
+        this.airPurifierService.getCharacteristic(this.platform.Characteristic.RotationSpeed)
+            .on('get', this.handleRotationSpeedGet.bind(this))
+            .on('set', this.handleRotationSpeedSet.bind(this));
         this.airQualityService.getCharacteristic(this.platform.Characteristic.AirQuality)
             .on('get', this.handleAirQualityGet.bind(this));
         this.airQualityService.getCharacteristic(this.platform.Characteristic.PM2_5Density)
@@ -74,7 +73,7 @@ class MiAirPurifierAccessory {
     /**
      * Handle requests to get the current value of the "Current Air Purifier State" characteristic
      */
-    handleCurrentAirPurifierStateGet(callback) {
+    handleCurrentStateGet(callback) {
         const getMode = (async function (device, platform) {
             const isOn = await device.getPower();
             if (isOn) {
@@ -89,7 +88,7 @@ class MiAirPurifierAccessory {
     /**
      * Handle requests to get the current value of the "Target Air Purifier State" characteristic
      */
-    handleTargetAirPurifierStateGet(callback) {
+    handleTargetStateGet(callback) {
         const getMode = (async function (device, platform) {
             const mode = await device.getMode();
             if (mode === 'auto') {
@@ -104,7 +103,7 @@ class MiAirPurifierAccessory {
     /**
      * Handle requests to set the "Target Air Purifier State" characteristic
      */
-    handleTargetAirPurifierStateSet(value, callback) {
+    handleTargetStateSet(value, callback) {
         const setMode = (async function () {
             // Set mode is not defined
             // if (value == platform.Characteristic.TargetAirPurifierState.AUTO) {
@@ -112,6 +111,27 @@ class MiAirPurifierAccessory {
             // } else {
             //   await device.setMode("favorite");
             // }
+            callback(null);
+        });
+        setMode();
+    }
+    /**
+    * Handle requests to get the current value of the "Target Air Purifier State" characteristic
+    */
+    handleRotationSpeedGet(callback) {
+        const getMode = (async function (device, platform) {
+            const mode = await device.getMode();
+            const properties = await device.properties;
+            platform.log.info('Properties: ', properties);
+            callback(null, 10);
+        });
+        getMode(this.device, this.platform);
+    }
+    /**
+     * Handle requests to set the "Target Air Purifier State" characteristic
+     */
+    handleRotationSpeedSet(value, callback) {
+        const setMode = (async function () {
             callback(null);
         });
         setMode();

@@ -1,10 +1,8 @@
 import { PlatformAccessory } from 'homebridge';
-import { MiHomePlatform } from './platform';
+import { MiHomePlatform } from '../platform';
 import * as mihome from 'node-mihome';
 /**
- * Platform Accessory
- * An instance of this class is created for each accessory your platform registers
- * Each accessory may expose multiple services of different service types.
+ * Mi Air Humidifier Accessory
  */
 export declare class MiAirHumidifierAccessory {
     private readonly platform;

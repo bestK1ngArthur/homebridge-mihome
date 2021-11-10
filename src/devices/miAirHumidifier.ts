@@ -1,13 +1,11 @@
 import { Service, PlatformAccessory, CharacteristicValue, CharacteristicSetCallback, CharacteristicGetCallback } from 'homebridge';
-import { MiHomePlatform } from './platform';
+import { MiHomePlatform, ManufacturerName } from '../platform';
 
 import * as mihome from 'node-mihome';
 import { platform } from 'os';
 
 /**
- * Platform Accessory
- * An instance of this class is created for each accessory your platform registers
- * Each accessory may expose multiple services of different service types.
+ * Mi Air Humidifier Accessory
  */
 export class MiAirHumidifierAccessory {
    private humiditierService: Service;
@@ -22,7 +20,7 @@ export class MiAirHumidifierAccessory {
 
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Xiaomi')
+      .setCharacteristic(this.platform.Characteristic.Manufacturer, ManufacturerName)
       .setCharacteristic(this.platform.Characteristic.Model, info.model)
       .setCharacteristic(this.platform.Characteristic.SerialNumber, info.mac)
       .setCharacteristic(this.platform.Characteristic.Name, info.name);
