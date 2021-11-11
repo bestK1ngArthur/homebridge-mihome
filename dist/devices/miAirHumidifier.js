@@ -109,17 +109,6 @@ class MiAirHumidifierAccessory {
      */
     handleRelativeHumidityHumidifierThresholdSet(value, callback) {
         const setTargetHumidity = (async function (device) {
-            // var targetHumidity = 40;
-            // if (value <= 40) {
-            //   targetHumidity = 40;
-            // } else if (value > 40 && value <= 50) {
-            //   targetHumidity = 50;
-            // } else if (value > 50 && value <= 60) {
-            //   targetHumidity = 60
-            // } else if (value > 60) {
-            //   targetHumidity = 70
-            // }
-            // await device.setTargetHumidity(targetHumidity);
             await device.miioCall('Set_HumiValue', [value]);
             callback(null);
         });

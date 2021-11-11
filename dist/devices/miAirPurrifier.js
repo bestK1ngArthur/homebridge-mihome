@@ -249,10 +249,10 @@ class MiAirPurifierAccessory {
     handleFilterChangeIndicationGet(callback) {
         const getValue = (async function (device, platform) {
             const filterRemaining = await device.getFilterRemaining();
-            platform.log.info("filterRemaining = ", filterRemaining);
             // If < 5% remaining, push indication to change
             if (filterRemaining < 5) {
                 callback(null, platform.Characteristic.FilterChangeIndication.CHANGE_FILTER);
+                return;
             }
             callback(null, platform.Characteristic.FilterChangeIndication.FILTER_OK);
         });
@@ -264,7 +264,6 @@ class MiAirPurifierAccessory {
     handleFilterLifeLevelGet(callback) {
         const getValue = (async function (device, platform) {
             var filterRemaining = await device.getFilterRemaining();
-            platform.log.info("filterRemaining = ", filterRemaining);
             if (filterRemaining == undefined) {
                 filterRemaining = 100;
             }

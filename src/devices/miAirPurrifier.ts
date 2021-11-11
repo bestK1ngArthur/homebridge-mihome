@@ -296,11 +296,11 @@ export class MiAirPurifierAccessory {
   handleFilterChangeIndicationGet(callback: any) {
     const getValue = (async function (device: mihome.Device, platform: MiHomePlatform) {
       const filterRemaining = await device.getFilterRemaining();
-      platform.log.info("filterRemaining = ", filterRemaining)
 
       // If < 5% remaining, push indication to change
       if (filterRemaining < 5) {
-        callback(null, platform.Characteristic.FilterChangeIndication.CHANGE_FILTER)
+        callback(null, platform.Characteristic.FilterChangeIndication.CHANGE_FILTER);
+        return;
       }
 
       callback(null, platform.Characteristic.FilterChangeIndication.FILTER_OK);
@@ -315,8 +315,6 @@ export class MiAirPurifierAccessory {
   handleFilterLifeLevelGet(callback: any) {
     const getValue = (async function (device: mihome.Device, platform: MiHomePlatform) {
       var filterRemaining = await device.getFilterRemaining();
-
-      platform.log.info("filterRemaining = ", filterRemaining)
 
       if (filterRemaining == undefined) {
         filterRemaining = 100;
