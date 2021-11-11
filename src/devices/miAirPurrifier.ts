@@ -158,8 +158,8 @@ export class MiAirPurifierAccessory {
   }
 
   /**
-  * Handle requests to get the current value of the "Rotation Speed" characteristic
-  */
+   * Handle requests to get the current value of the "Rotation Speed" characteristic
+   */
   handleRotationSpeedGet(callback: any) {
     const getSpeed = (async function (device: mihome.Device, platform: MiHomePlatform) {
       const fanLevel = await device.getFanLevel();
@@ -202,8 +202,8 @@ export class MiAirPurifierAccessory {
   }
 
   /**
-* Handle requests to get the current value of the "Lock Physical Controls" characteristic
-*/
+   * Handle requests to get the current value of the "Lock Physical Controls" characteristic
+   */
   handleLockPhysicalControlsGet(callback: any) {
     const getControlsLocked = (async function (device: mihome.Device, platform: MiHomePlatform) {
       var controlsLocked = await device.getControlsLocked();
@@ -293,7 +293,7 @@ export class MiAirPurifierAccessory {
   /**
    * Handle requests to get the current value of the "Filter Change Indication" characteristic
    */
-   handleFilterChangeIndicationGet(callback: any) {
+  handleFilterChangeIndicationGet(callback: any) {
     const getValue = (async function (device: mihome.Device, platform: MiHomePlatform) {
       const filterRemaining = await device.getFilterRemaining();
       platform.log.info("filterRemaining = ", filterRemaining)
@@ -312,7 +312,7 @@ export class MiAirPurifierAccessory {
   /**
    * Handle requests to get the current value of the "Filter Life Level" characteristic
    */
-   handleFilterLifeLevelGet(callback: any) {
+  handleFilterLifeLevelGet(callback: any) {
     const getValue = (async function (device: mihome.Device, platform: MiHomePlatform) {
       var filterRemaining = await device.getFilterRemaining();
 
