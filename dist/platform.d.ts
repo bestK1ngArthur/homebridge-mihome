@@ -1,9 +1,8 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 import * as mihome from 'node-mihome';
+export declare const ManufacturerName = "Xiaomi";
 /**
- * HomebridgePlatform
- * This class is the main constructor for your plugin, this is where you should
- * parse the user config and discover/register accessories with Homebridge.
+ * Mi Home Platform
  */
 export declare class MiHomePlatform implements DynamicPlatformPlugin {
     readonly log: Logger;

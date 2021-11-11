@@ -2,7 +2,7 @@
   "private": true,
   "displayName": "Mi Home Plugin",
   "name": "homebridge-mihome",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Get information and controll Xiaomi Mi devices.",
   "license": "MIT",
   "repository": {

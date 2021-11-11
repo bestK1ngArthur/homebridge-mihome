@@ -1,18 +1,17 @@
 import { Service, PlatformAccessory, CharacteristicValue, CharacteristicSetCallback, CharacteristicGetCallback } from 'homebridge';
-import { MiHomePlatform } from './platform';
+import { MiHomePlatform, ManufacturerName } from '../platform';
 
 import * as mihome from 'node-mihome';
 
 /**
- * Platform Accessory
- * An instance of this class is created for each accessory your platform registers
- * Each accessory may expose multiple services of different service types.
+ * Mi Air Purifier Accessory
  */
 export class MiAirPurifierAccessory {
   private airPurifierService: Service;
   private airQualityService: Service;
   private temperatureService: Service;
   private humidityService: Service;
+  private filterService: Service;
 
   constructor(
     private readonly platform: MiHomePlatform,
@@ -20,31 +19,36 @@ export class MiAirPurifierAccessory {
     private readonly device: mihome.Device,
     private readonly info: any,
   ) {
-
-    // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Xiaomi')
+      .setCharacteristic(this.platform.Characteristic.Manufacturer, ManufacturerName)
       .setCharacteristic(this.platform.Characteristic.Model, info.model)
       .setCharacteristic(this.platform.Characteristic.SerialNumber, info.mac)
       .setCharacteristic(this.platform.Characteristic.Name, info.name);
 
-    // set Air Purifier services
     this.airPurifierService = this.accessory.getService(this.platform.Service.AirPurifier)!;
     this.airQualityService = this.accessory.getService(this.platform.Service.AirQualitySensor)!;
     this.temperatureService = this.accessory.getService(this.platform.Service.TemperatureSensor)!;
     this.humidityService = this.accessory.getService(this.platform.Service.HumiditySensor)!;
+    this.filterService = this.accessory.getService(this.platform.Service.FilterMaintenance)!;
 
-    // create handlers for required characteristics
     this.airPurifierService.getCharacteristic(this.platform.Characteristic.Active)
       .on('get', this.handleActiveGet.bind(this))
       .on('set', this.handleActiveSet.bind(this));
-    
+
     this.airPurifierService.getCharacteristic(this.platform.Characteristic.CurrentAirPurifierState)
-      .on('get', this.handleCurrentAirPurifierStateGet.bind(this));
-    
+      .on('get', this.handleCurrentStateGet.bind(this));
+
     this.airPurifierService.getCharacteristic(this.platform.Characteristic.TargetAirPurifierState)
-      .on('get', this.handleTargetAirPurifierStateGet.bind(this))
-      .on('set', this.handleTargetAirPurifierStateSet.bind(this));
+      .on('get', this.handleTargetStateGet.bind(this))
+      .on('set', this.handleTargetStateSet.bind(this));
+
+    this.airPurifierService.getCharacteristic(this.platform.Characteristic.RotationSpeed)
+      .on('get', this.handleRotationSpeedGet.bind(this))
+      .on('set', this.handleRotationSpeedSet.bind(this));
+
+    this.airPurifierService.getCharacteristic(this.platform.Characteristic.LockPhysicalControls)
+      .on('get', this.handleLockPhysicalControlsGet.bind(this))
+      .on('set', this.handleLockPhysicalControlsSet.bind(this));
 
     this.airQualityService.getCharacteristic(this.platform.Characteristic.AirQuality)
       .on('get', this.handleAirQualityGet.bind(this));
@@ -57,12 +61,18 @@ export class MiAirPurifierAccessory {
 
     this.humidityService.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
       .on('get', this.handleCurrentRelativeHumidityGet.bind(this));
+
+    this.filterService.getCharacteristic(this.platform.Characteristic.FilterChangeIndication)
+      .on('get', this.handleFilterChangeIndicationGet.bind(this));
+
+    this.filterService.getCharacteristic(this.platform.Characteristic.FilterLifeLevel)
+      .on('get', this.handleFilterLifeLevelGet.bind(this));
   }
 
   /**
    * Handle requests to get the current value of the "Active" characteristic
    */
-  handleActiveGet(callback) {
+  handleActiveGet(callback: any) {
     const getPower = (async function (device: mihome.Device, platform: MiHomePlatform) {
       const isOn = await device.getPower();
 
@@ -79,7 +89,7 @@ export class MiAirPurifierAccessory {
   /**
    * Handle requests to set the "Active" characteristic
    */
-  handleActiveSet(value, callback) {
+  handleActiveSet(value: any, callback: any) {
     const setPower = (async function (value: boolean, device: mihome.Device) {
 
       if (value) {
@@ -87,7 +97,7 @@ export class MiAirPurifierAccessory {
       } else {
         await device.setPower(false);
       }
-      
+
       callback(null);
     });
 
@@ -95,9 +105,9 @@ export class MiAirPurifierAccessory {
   }
 
   /**
-   * Handle requests to get the current value of the "Current Air Purifier State" characteristic
+   * Handle requests to get the current value of the "Current State" characteristic
    */
-  handleCurrentAirPurifierStateGet(callback) {
+  handleCurrentStateGet(callback: any) {
     const getMode = (async function (device: mihome.Device, platform: MiHomePlatform) {
       const isOn = await device.getPower();
 
@@ -112,9 +122,9 @@ export class MiAirPurifierAccessory {
   }
 
   /**
-   * Handle requests to get the current value of the "Target Air Purifier State" characteristic
+   * Handle requests to get the current value of the "Target State" characteristic
    */
-  handleTargetAirPurifierStateGet(callback) {
+  handleTargetStateGet(callback: any) {
     const getMode = (async function (device: mihome.Device, platform: MiHomePlatform) {
       const mode = await device.getMode();
 
@@ -129,9 +139,9 @@ export class MiAirPurifierAccessory {
   }
 
   /**
-   * Handle requests to set the "Target Air Purifier State" characteristic
+   * Handle requests to set the "Target State" characteristic
    */
-  handleTargetAirPurifierStateSet(value: any, callback) {
+  handleTargetStateSet(value: any, callback: any) {
     const setMode = (async function () {
 
       // Set mode is not defined
@@ -148,9 +158,83 @@ export class MiAirPurifierAccessory {
   }
 
   /**
+   * Handle requests to get the current value of the "Rotation Speed" characteristic
+   */
+  handleRotationSpeedGet(callback: any) {
+    const getSpeed = (async function (device: mihome.Device, platform: MiHomePlatform) {
+      const fanLevel = await device.getFanLevel();
+      var rotationSpeed = 0;
+
+      if (fanLevel == 1) {
+        rotationSpeed = 100 / 3;
+      } else if (fanLevel == 2) {
+        rotationSpeed = 100 / 3 * 2;
+      } else if (fanLevel == 3) {
+        rotationSpeed = 100;
+      }
+
+      callback(null, rotationSpeed)
+    });
+
+    getSpeed(this.device, this.platform);
+  }
+
+  /**
+   * Handle requests to set the "Rotation Speed" characteristic
+   */
+  handleRotationSpeedSet(value: any, callback: any) {
+    const setSpeed = (async function (device: mihome.Device) {
+      var fanLevel;
+
+      if (value < (100 / 3)) {
+        fanLevel = 1;
+      } else if (value < (100 / 3 * 2)) {
+        fanLevel = 2;
+      } else {
+        fanLevel = 3;
+      }
+
+      await device.setFanLevel(fanLevel)
+      callback(null);
+    });
+
+    setSpeed(this.device);
+  }
+
+  /**
+   * Handle requests to get the current value of the "Lock Physical Controls" characteristic
+   */
+  handleLockPhysicalControlsGet(callback: any) {
+    const getControlsLocked = (async function (device: mihome.Device, platform: MiHomePlatform) {
+      var controlsLocked = await device.getControlsLocked();
+
+      if (controlsLocked) {
+        callback(null, platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_ENABLED)
+      } else {
+        callback(null, platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_DISABLED)
+      }
+    });
+
+    getControlsLocked(this.device, this.platform);
+  }
+
+  /**
+   * Handle requests to set the "Lock Physical Controls" characteristic
+   */
+  handleLockPhysicalControlsSet(value: any, callback: any) {
+    const setControlsLocked = (async function (device: mihome.Device, platform: MiHomePlatform) {
+      var controlsLocked: boolean = value == platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_ENABLED;
+      await device.setControlsLocked(controlsLocked)
+      callback(null);
+    });
+
+    setControlsLocked(this.device, this.platform);
+  }
+
+  /**
    * Handle requests to get the current value of the "Air Quality" characteristic
    */
-  handleAirQualityGet(callback) {
+  handleAirQualityGet(callback: any) {
     const getValue = (async function (device: mihome.Device, platform: MiHomePlatform) {
       const value = await device.getPM2_5();
 
@@ -173,7 +257,7 @@ export class MiAirPurifierAccessory {
   /**
    * Handle requests to get the current value of the "PM2.5" characteristic
    */
-  handlePM2_5DensityGet(callback) {
+  handlePM2_5DensityGet(callback: any) {
     const getValue = (async function (device: mihome.Device) {
       const value = await device.getPM2_5();
       callback(null, value);
@@ -185,7 +269,7 @@ export class MiAirPurifierAccessory {
   /**
    * Handle requests to get the current value of the "Current Temperature" characteristic
    */
-  handleCurrentTemperatureGet(callback) {
+  handleCurrentTemperatureGet(callback: any) {
     const getValue = (async function (device: mihome.Device) {
       const value = await device.getTemperature();
       callback(null, value);
@@ -197,12 +281,50 @@ export class MiAirPurifierAccessory {
   /**
    * Handle requests to get the current value of the "Current Relative Humidity" characteristic
    */
-  handleCurrentRelativeHumidityGet(callback) {
+  handleCurrentRelativeHumidityGet(callback: any) {
     const getValue = (async function (device: mihome.Device) {
       const value = await device.getHumidity();
       callback(null, value);
     });
 
     getValue(this.device);
+  }
+
+  /**
+   * Handle requests to get the current value of the "Filter Change Indication" characteristic
+   */
+  handleFilterChangeIndicationGet(callback: any) {
+    const getValue = (async function (device: mihome.Device, platform: MiHomePlatform) {
+      const filterRemaining = await device.getFilterRemaining();
+      platform.log.info("filterRemaining = ", filterRemaining)
+
+      // If < 5% remaining, push indication to change
+      if (filterRemaining < 5) {
+        callback(null, platform.Characteristic.FilterChangeIndication.CHANGE_FILTER)
+      }
+
+      callback(null, platform.Characteristic.FilterChangeIndication.FILTER_OK);
+    });
+
+    getValue(this.device, this.platform);
+  }
+
+  /**
+   * Handle requests to get the current value of the "Filter Life Level" characteristic
+   */
+  handleFilterLifeLevelGet(callback: any) {
+    const getValue = (async function (device: mihome.Device, platform: MiHomePlatform) {
+      var filterRemaining = await device.getFilterRemaining();
+
+      platform.log.info("filterRemaining = ", filterRemaining)
+
+      if (filterRemaining == undefined) {
+        filterRemaining = 100;
+      }
+
+      callback(null, 100 - filterRemaining);
+    });
+
+    getValue(this.device, this.platform);
   }
 }
