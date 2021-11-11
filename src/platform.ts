@@ -95,6 +95,9 @@ export class MiHomePlatform implements DynamicPlatformPlugin {
 
     const humiditySensor = new this.Service.HumiditySensor(rawDevice.name);
     accessory.addService(humiditySensor);
+
+    const filterService = new this.Service.FilterMaintenance(rawDevice.name);
+    accessory.addService(filterService);
     
     // create the accessory handler for the newly create accessory
     new MiAirPurifierAccessory(this, accessory, device, rawDevice);

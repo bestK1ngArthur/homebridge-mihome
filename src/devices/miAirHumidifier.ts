@@ -68,9 +68,9 @@ export class MiAirHumidifierAccessory {
    * Handle requests to set the "Active" characteristic
    */
    handleActiveSet(value, callback) {
-     const setPower = (async function (value: boolean, device: mihome.Device) {
+     const setPower = (async function (value: any, device: mihome.Device, platform: MiHomePlatform) {
 
-       if (value) {
+       if (value == platform.Characteristic.Active.ACTIVE) {
          await device.setPower(true);
        } else {
          await device.setPower(false);
@@ -79,7 +79,7 @@ export class MiAirHumidifierAccessory {
        callback(null);
      });
 
-     setPower(value, this.device);
+     setPower(value, this.device, this.platform);
    }
 
    /**

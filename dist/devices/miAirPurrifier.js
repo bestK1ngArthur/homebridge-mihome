@@ -20,6 +20,7 @@ class MiAirPurifierAccessory {
         this.airQualityService = this.accessory.getService(this.platform.Service.AirQualitySensor);
         this.temperatureService = this.accessory.getService(this.platform.Service.TemperatureSensor);
         this.humidityService = this.accessory.getService(this.platform.Service.HumiditySensor);
+        this.filterService = this.accessory.getService(this.platform.Service.FilterMaintenance);
         this.airPurifierService.getCharacteristic(this.platform.Characteristic.Active)
             .on('get', this.handleActiveGet.bind(this))
             .on('set', this.handleActiveSet.bind(this));
@@ -42,6 +43,10 @@ class MiAirPurifierAccessory {
             .on('get', this.handleCurrentTemperatureGet.bind(this));
         this.humidityService.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
             .on('get', this.handleCurrentRelativeHumidityGet.bind(this));
+        this.filterService.getCharacteristic(this.platform.Characteristic.FilterChangeIndication)
+            .on('get', this.handleFilterChangeIndicationGet.bind(this));
+        this.filterService.getCharacteristic(this.platform.Characteristic.FilterLifeLevel)
+            .on('get', this.handleFilterLifeLevelGet.bind(this));
     }
     /**
      * Handle requests to get the current value of the "Active" characteristic
@@ -237,6 +242,35 @@ class MiAirPurifierAccessory {
             callback(null, value);
         });
         getValue(this.device);
+    }
+    /**
+     * Handle requests to get the current value of the "Filter Change Indication" characteristic
+     */
+    handleFilterChangeIndicationGet(callback) {
+        const getValue = (async function (device, platform) {
+            const filterRemaining = await device.getFilterRemaining();
+            platform.log.info("filterRemaining = ", filterRemaining);
+            // If < 5% remaining, push indication to change
+            if (filterRemaining < 5) {
+                callback(null, platform.Characteristic.FilterChangeIndication.CHANGE_FILTER);
+            }
+            callback(null, platform.Characteristic.FilterChangeIndication.FILTER_OK);
+        });
+        getValue(this.device, this.platform);
+    }
+    /**
+     * Handle requests to get the current value of the "Filter Life Level" characteristic
+     */
+    handleFilterLifeLevelGet(callback) {
+        const getValue = (async function (device, platform) {
+            var filterRemaining = await device.getFilterRemaining();
+            platform.log.info("filterRemaining = ", filterRemaining);
+            if (filterRemaining == undefined) {
+                filterRemaining = 100;
+            }
+            callback(null, 100 - filterRemaining);
+        });
+        getValue(this.device, this.platform);
     }
 }
 exports.MiAirPurifierAccessory = MiAirPurifierAccessory;

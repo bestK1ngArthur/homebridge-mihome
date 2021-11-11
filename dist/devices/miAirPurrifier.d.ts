@@ -13,6 +13,7 @@ export declare class MiAirPurifierAccessory {
     private airQualityService;
     private temperatureService;
     private humidityService;
+    private filterService;
     constructor(platform: MiHomePlatform, accessory: PlatformAccessory, device: mihome.Device, info: any);
     /**
      * Handle requests to get the current value of the "Active" characteristic
@@ -66,5 +67,13 @@ export declare class MiAirPurifierAccessory {
      * Handle requests to get the current value of the "Current Relative Humidity" characteristic
      */
     handleCurrentRelativeHumidityGet(callback: any): void;
+    /**
+     * Handle requests to get the current value of the "Filter Change Indication" characteristic
+     */
+    handleFilterChangeIndicationGet(callback: any): void;
+    /**
+     * Handle requests to get the current value of the "Filter Life Level" characteristic
+     */
+    handleFilterLifeLevelGet(callback: any): void;
 }
 //# sourceMappingURL=miAirPurrifier.d.ts.map

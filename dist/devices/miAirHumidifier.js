@@ -52,8 +52,8 @@ class MiAirHumidifierAccessory {
     * Handle requests to set the "Active" characteristic
     */
     handleActiveSet(value, callback) {
-        const setPower = (async function (value, device) {
-            if (value) {
+        const setPower = (async function (value, device, platform) {
+            if (value == platform.Characteristic.Active.ACTIVE) {
                 await device.setPower(true);
             }
             else {
@@ -61,7 +61,7 @@ class MiAirHumidifierAccessory {
             }
             callback(null);
         });
-        setPower(value, this.device);
+        setPower(value, this.device, this.platform);
     }
     /**
     * Handle requests to get the current value of the "Current Humidifier State" characteristic
