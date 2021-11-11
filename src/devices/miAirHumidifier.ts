@@ -17,19 +17,14 @@ export class MiAirHumidifierAccessory {
     private readonly device: mihome.Device,
     private readonly info: any,
    ) {
-
-    // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, ManufacturerName)
       .setCharacteristic(this.platform.Characteristic.Model, info.model)
       .setCharacteristic(this.platform.Characteristic.SerialNumber, info.mac)
       .setCharacteristic(this.platform.Characteristic.Name, info.name);
 
-    // set Air Purifier services
     this.humiditierService = this.accessory.getService(this.platform.Service.HumidifierDehumidifier)!;
     this.temperatureService = this.accessory.getService(this.platform.Service.TemperatureSensor)!;
-
-    // create handlers for required characteristics
 
     this.humiditierService.getCharacteristic(this.platform.Characteristic.Active)
       .on('get', this.handleActiveGet.bind(this))

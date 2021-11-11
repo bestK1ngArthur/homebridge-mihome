@@ -44,6 +44,10 @@ export class MiAirPurifierAccessory {
       .on('get', this.handleRotationSpeedGet.bind(this))
       .on('set', this.handleRotationSpeedSet.bind(this));
 
+    this.airPurifierService.getCharacteristic(this.platform.Characteristic.LockPhysicalControls)
+      .on('get', this.handleLockPhysicalControlsGet.bind(this))
+      .on('set', this.handleLockPhysicalControlsSet.bind(this));
+
     this.airQualityService.getCharacteristic(this.platform.Characteristic.AirQuality)
       .on('get', this.handleAirQualityGet.bind(this));
 
@@ -149,7 +153,7 @@ export class MiAirPurifierAccessory {
   * Handle requests to get the current value of the "Rotation Speed" characteristic
   */
   handleRotationSpeedGet(callback: any) {
-    const getMode = (async function (device: mihome.Device, platform: MiHomePlatform) {
+    const getSpeed = (async function (device: mihome.Device, platform: MiHomePlatform) {
       const fanLevel = await device.getFanLevel();
       var rotationSpeed = 0;
 
@@ -164,14 +168,14 @@ export class MiAirPurifierAccessory {
       callback(null, rotationSpeed)
     });
 
-    getMode(this.device, this.platform);
+    getSpeed(this.device, this.platform);
   }
 
   /**
    * Handle requests to set the "Rotation Speed" characteristic
    */
   handleRotationSpeedSet(value: any, callback: any) {
-    const setMode = (async function (device: mihome.Device) {
+    const setSpeed = (async function (device: mihome.Device) {
       var fanLevel;
 
       if (value < (100 / 3)) {
@@ -186,7 +190,37 @@ export class MiAirPurifierAccessory {
       callback(null);
     });
 
-    setMode(this.device);
+    setSpeed(this.device);
+  }
+
+  /**
+* Handle requests to get the current value of the "Lock Physical Controls" characteristic
+*/
+  handleLockPhysicalControlsGet(callback: any) {
+    const getControlsLocked = (async function (device: mihome.Device, platform: MiHomePlatform) {
+      var controlsLocked = await device.getControlsLocked();
+
+      if (controlsLocked) {
+        callback(null, platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_ENABLED)
+      } else {
+        callback(null, platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_DISABLED)
+      }
+    });
+
+    getControlsLocked(this.device, this.platform);
+  }
+
+  /**
+   * Handle requests to set the "Lock Physical Controls" characteristic
+   */
+  handleLockPhysicalControlsSet(value: any, callback: any) {
+    const setControlsLocked = (async function (device: mihome.Device, platform: MiHomePlatform) {
+      var controlsLocked: boolean = value == platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_ENABLED;
+      await device.setControlsLocked(controlsLocked)
+      callback(null);
+    });
+
+    setControlsLocked(this.device, this.platform);
   }
 
   /**

@@ -31,6 +31,9 @@ class MiAirPurifierAccessory {
         this.airPurifierService.getCharacteristic(this.platform.Characteristic.RotationSpeed)
             .on('get', this.handleRotationSpeedGet.bind(this))
             .on('set', this.handleRotationSpeedSet.bind(this));
+        this.airPurifierService.getCharacteristic(this.platform.Characteristic.LockPhysicalControls)
+            .on('get', this.handleLockPhysicalControlsGet.bind(this))
+            .on('set', this.handleLockPhysicalControlsSet.bind(this));
         this.airQualityService.getCharacteristic(this.platform.Characteristic.AirQuality)
             .on('get', this.handleAirQualityGet.bind(this));
         this.airQualityService.getCharacteristic(this.platform.Characteristic.PM2_5Density)
@@ -119,7 +122,7 @@ class MiAirPurifierAccessory {
     * Handle requests to get the current value of the "Rotation Speed" characteristic
     */
     handleRotationSpeedGet(callback) {
-        const getMode = (async function (device, platform) {
+        const getSpeed = (async function (device, platform) {
             const fanLevel = await device.getFanLevel();
             var rotationSpeed = 0;
             if (fanLevel == 1) {
@@ -133,13 +136,13 @@ class MiAirPurifierAccessory {
             }
             callback(null, rotationSpeed);
         });
-        getMode(this.device, this.platform);
+        getSpeed(this.device, this.platform);
     }
     /**
      * Handle requests to set the "Rotation Speed" characteristic
      */
     handleRotationSpeedSet(value, callback) {
-        const setMode = (async function (device) {
+        const setSpeed = (async function (device) {
             var fanLevel;
             if (value < (100 / 3)) {
                 fanLevel = 1;
@@ -153,7 +156,33 @@ class MiAirPurifierAccessory {
             await device.setFanLevel(fanLevel);
             callback(null);
         });
-        setMode(this.device);
+        setSpeed(this.device);
+    }
+    /**
+  * Handle requests to get the current value of the "Lock Physical Controls" characteristic
+  */
+    handleLockPhysicalControlsGet(callback) {
+        const getControlsLocked = (async function (device, platform) {
+            var controlsLocked = await device.getControlsLocked();
+            if (controlsLocked) {
+                callback(null, platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_ENABLED);
+            }
+            else {
+                callback(null, platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_DISABLED);
+            }
+        });
+        getControlsLocked(this.device, this.platform);
+    }
+    /**
+     * Handle requests to set the "Lock Physical Controls" characteristic
+     */
+    handleLockPhysicalControlsSet(value, callback) {
+        const setControlsLocked = (async function (device, platform) {
+            var controlsLocked = value == platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_ENABLED;
+            await device.setControlsLocked(controlsLocked);
+            callback(null);
+        });
+        setControlsLocked(this.device, this.platform);
     }
     /**
      * Handle requests to get the current value of the "Air Quality" characteristic
