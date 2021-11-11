@@ -41,10 +41,6 @@ export class MiAirHumidifierAccessory {
       .on('get', this.handleRelativeHumidityHumidifierThresholdGet.bind(this))
       .on('set', this.handleRelativeHumidityHumidifierThresholdSet.bind(this));
 
-    this.humiditierService.getCharacteristic(this.platform.Characteristic.RotationSpeed)
-      .on('get', this.handleRotationSpeedGet.bind(this))
-      .on('set', this.handleRotationSpeedSet.bind(this));
-
     this.humiditierService.getCharacteristic(this.platform.Characteristic.WaterLevel)
       .on('get', this.handleCurrentWaterLevelGet.bind(this));
 
@@ -143,67 +139,11 @@ export class MiAirHumidifierAccessory {
    */
   handleRelativeHumidityHumidifierThresholdSet(value: any, callback) {
     const setTargetHumidity = (async function (device: mihome.Device) {
-      var targetHumidity = 40;
-
-      if (value <= 40) {
-        targetHumidity = 40;
-      } else if (value > 40 && value <= 50) {
-        targetHumidity = 50;
-      } else if (value > 50 && value <= 60) {
-        targetHumidity = 60
-      } else if (value > 60) {
-        targetHumidity = 70
-      }
-
-      await device.setTargetHumidity(targetHumidity);
+      await device.miioCall('Set_HumiValue', [value])
       callback(null);
     });
 
     setTargetHumidity(this.device);
-  }
-
-  /**
-   * Handle requests to get the current value of the "Rotation Speed" characteristic
-   */
-  handleRotationSpeedGet(callback) {
-    const getSpeed = (async function (device: mihome.Device, platform: MiHomePlatform) {
-      const fanLevel = await device.getFanLevel();
-      var rotationSpeed = 0;
-
-      if (fanLevel == 1) {
-        rotationSpeed = 100 / 3;
-      } else if (fanLevel == 2) {
-        rotationSpeed = 100 / 3 * 2;
-      } else if (fanLevel == 3) {
-        rotationSpeed = 100;
-      }
-
-      callback(null, rotationSpeed)
-    });
-
-    getSpeed(this.device, this.platform);
-  }
-
-  /**
-   * Handle requests to set the "Rotation Speed" characteristic
-   */
-  handleRotationSpeedSet(value: any, callback) {
-    const setSpeed = (async function (device: mihome.Device) {
-      var fanLevel;
-
-      if (value < (100 / 3)) {
-        fanLevel = 1;
-      } else if (value < (100 / 3 * 2)) {
-        fanLevel = 2;
-      } else {
-        fanLevel = 3;
-      }
-
-      await device.setFanLevel(fanLevel)
-      callback(null);
-    });
-
-    setSpeed(this.device);
   }
 
   /**

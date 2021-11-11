@@ -36,16 +36,16 @@ export declare class MiAirPurifierAccessory {
      */
     handleTargetStateSet(value: any, callback: any): void;
     /**
-    * Handle requests to get the current value of the "Rotation Speed" characteristic
-    */
+     * Handle requests to get the current value of the "Rotation Speed" characteristic
+     */
     handleRotationSpeedGet(callback: any): void;
     /**
      * Handle requests to set the "Rotation Speed" characteristic
      */
     handleRotationSpeedSet(value: any, callback: any): void;
     /**
-  * Handle requests to get the current value of the "Lock Physical Controls" characteristic
-  */
+     * Handle requests to get the current value of the "Lock Physical Controls" characteristic
+     */
     handleLockPhysicalControlsGet(callback: any): void;
     /**
      * Handle requests to set the "Lock Physical Controls" characteristic

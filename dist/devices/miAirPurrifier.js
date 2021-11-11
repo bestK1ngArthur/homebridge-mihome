@@ -124,8 +124,8 @@ class MiAirPurifierAccessory {
         setMode();
     }
     /**
-    * Handle requests to get the current value of the "Rotation Speed" characteristic
-    */
+     * Handle requests to get the current value of the "Rotation Speed" characteristic
+     */
     handleRotationSpeedGet(callback) {
         const getSpeed = (async function (device, platform) {
             const fanLevel = await device.getFanLevel();
@@ -164,8 +164,8 @@ class MiAirPurifierAccessory {
         setSpeed(this.device);
     }
     /**
-  * Handle requests to get the current value of the "Lock Physical Controls" characteristic
-  */
+     * Handle requests to get the current value of the "Lock Physical Controls" characteristic
+     */
     handleLockPhysicalControlsGet(callback) {
         const getControlsLocked = (async function (device, platform) {
             var controlsLocked = await device.getControlsLocked();
