@@ -163,7 +163,7 @@ export class MiAirPurifierAccessory {
   handleRotationSpeedGet(callback: any) {
     const getSpeed = (async function (device: mihome.Device, platform: MiHomePlatform) {
       const fanLevel = await device.getFanLevel();
-      var rotationSpeed = 0;
+      let rotationSpeed = 0;
 
       if (fanLevel == 1) {
         rotationSpeed = 100 / 3;
@@ -173,7 +173,7 @@ export class MiAirPurifierAccessory {
         rotationSpeed = 100;
       }
 
-      callback(null, rotationSpeed)
+      callback(null, rotationSpeed);
     });
 
     getSpeed(this.device, this.platform);
@@ -184,7 +184,7 @@ export class MiAirPurifierAccessory {
    */
   handleRotationSpeedSet(value: any, callback: any) {
     const setSpeed = (async function (device: mihome.Device) {
-      var fanLevel;
+      let fanLevel;
 
       if (value < (100 / 3)) {
         fanLevel = 1;
@@ -194,7 +194,7 @@ export class MiAirPurifierAccessory {
         fanLevel = 3;
       }
 
-      await device.setFanLevel(fanLevel)
+      await device.setFanLevel(fanLevel);
       callback(null);
     });
 
@@ -206,12 +206,12 @@ export class MiAirPurifierAccessory {
    */
   handleLockPhysicalControlsGet(callback: any) {
     const getControlsLocked = (async function (device: mihome.Device, platform: MiHomePlatform) {
-      var controlsLocked = await device.getControlsLocked();
+      const controlsLocked = await device.getControlsLocked();
 
       if (controlsLocked) {
-        callback(null, platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_ENABLED)
+        callback(null, platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_ENABLED);
       } else {
-        callback(null, platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_DISABLED)
+        callback(null, platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_DISABLED);
       }
     });
 
@@ -223,8 +223,8 @@ export class MiAirPurifierAccessory {
    */
   handleLockPhysicalControlsSet(value: any, callback: any) {
     const setControlsLocked = (async function (device: mihome.Device, platform: MiHomePlatform) {
-      var controlsLocked: boolean = value == platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_ENABLED;
-      await device.setControlsLocked(controlsLocked)
+      const controlsLocked: boolean = value == platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_ENABLED;
+      await device.setControlsLocked(controlsLocked);
       callback(null);
     });
 
@@ -314,7 +314,7 @@ export class MiAirPurifierAccessory {
    */
   handleFilterLifeLevelGet(callback: any) {
     const getValue = (async function (device: mihome.Device, platform: MiHomePlatform) {
-      var filterRemaining = await device.getFilterRemaining();
+      let filterRemaining = await device.getFilterRemaining();
 
       if (filterRemaining == undefined) {
         filterRemaining = 100;

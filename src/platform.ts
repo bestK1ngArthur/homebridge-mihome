@@ -7,7 +7,7 @@ import { MiAirHumidifierAccessory } from './devices/miAirHumidifier';
 import * as mihome from 'node-mihome';
 import { platform } from 'os';
 
-export const ManufacturerName = "Xiaomi";
+export const ManufacturerName = 'Xiaomi';
 
 /**
  * Mi Home Platform
@@ -159,7 +159,12 @@ export class MiHomePlatform implements DynamicPlatformPlugin {
           if (existingAccessory) {
               
             // the accessory already exists
-            if (rawDevice) {
+            if (!rawDevice || !rawDevice.isOnline) {
+              // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
+              // remove platform accessories when no longer present
+              platform.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
+              platform.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
+            } else if (rawDevice) {
               platform.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
     
               // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
@@ -171,20 +176,14 @@ export class MiHomePlatform implements DynamicPlatformPlugin {
               platform.configureExistingAccessory(model, existingAccessory, device, rawDevice);
               
               // update accessory cache with any changes to the accessory details and information
+              existingAccessory.context.device = device;
               platform.api.updatePlatformAccessories([existingAccessory]);
-  
-            } else if (!rawDevice) {
-              
-              // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
-              // remove platform accessories when no longer present
-              platform.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
-              platform.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
             }
   
           } else {
   
             // the accessory does not yet exist, so we need to create it
-            platform.log.info('Adding new accessory: ', mac);
+            platform.log.info('Adding new accessory: ', mac, ' (', model, ')');
     
             // create a new accessory
             platform.configureNewAccessory(model, mac, uuid, device, rawDevice);

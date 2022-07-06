@@ -24,7 +24,7 @@ const settings_1 = require("./settings");
 const miAirPurrifier_1 = require("./devices/miAirPurrifier");
 const miAirHumidifier_1 = require("./devices/miAirHumidifier");
 const mihome = __importStar(require("node-mihome"));
-exports.ManufacturerName = "Xiaomi";
+exports.ManufacturerName = 'Xiaomi';
 /**
  * Mi Home Platform
  */
@@ -137,8 +137,14 @@ class MiHomePlatform {
                     await device.init();
                     if (existingAccessory) {
                         // the accessory already exists
-                        if (rawDevice) {
-                            platform.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+                        if (!rawDevice || !rawDevice.isOnline) {
+                            // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
+                            // remove platform accessories when no longer present
+                            platform.api.unregisterPlatformAccessories(settings_1.PLUGIN_NAME, settings_1.PLATFORM_NAME, [existingAccessory]);
+                            platform.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
+                        }
+                        else if (rawDevice) {
+                            platform.log.info('Restoring existing accessory from cache:', existingAccessory.displayName, device, rawDevice);
                             // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
                             // existingAccessory.context.device = device;
                             // this.api.updatePlatformAccessories([existingAccessory]);
@@ -146,18 +152,13 @@ class MiHomePlatform {
                             // this is imported from `platformAccessory.ts`
                             platform.configureExistingAccessory(model, existingAccessory, device, rawDevice);
                             // update accessory cache with any changes to the accessory details and information
+                            existingAccessory.context.device = device;
                             platform.api.updatePlatformAccessories([existingAccessory]);
-                        }
-                        else if (!rawDevice) {
-                            // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
-                            // remove platform accessories when no longer present
-                            platform.api.unregisterPlatformAccessories(settings_1.PLUGIN_NAME, settings_1.PLATFORM_NAME, [existingAccessory]);
-                            platform.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
                         }
                     }
                     else {
                         // the accessory does not yet exist, so we need to create it
-                        platform.log.info('Adding new accessory: ', mac);
+                        platform.log.info('Adding new accessory: ', mac, model, device, rawDevice);
                         // create a new accessory
                         platform.configureNewAccessory(model, mac, uuid, device, rawDevice);
                     }

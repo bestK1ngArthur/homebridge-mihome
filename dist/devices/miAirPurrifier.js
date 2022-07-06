@@ -129,7 +129,7 @@ class MiAirPurifierAccessory {
     handleRotationSpeedGet(callback) {
         const getSpeed = (async function (device, platform) {
             const fanLevel = await device.getFanLevel();
-            var rotationSpeed = 0;
+            let rotationSpeed = 0;
             if (fanLevel == 1) {
                 rotationSpeed = 100 / 3;
             }
@@ -148,7 +148,7 @@ class MiAirPurifierAccessory {
      */
     handleRotationSpeedSet(value, callback) {
         const setSpeed = (async function (device) {
-            var fanLevel;
+            let fanLevel;
             if (value < (100 / 3)) {
                 fanLevel = 1;
             }
@@ -168,7 +168,7 @@ class MiAirPurifierAccessory {
      */
     handleLockPhysicalControlsGet(callback) {
         const getControlsLocked = (async function (device, platform) {
-            var controlsLocked = await device.getControlsLocked();
+            const controlsLocked = await device.getControlsLocked();
             if (controlsLocked) {
                 callback(null, platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_ENABLED);
             }
@@ -183,7 +183,7 @@ class MiAirPurifierAccessory {
      */
     handleLockPhysicalControlsSet(value, callback) {
         const setControlsLocked = (async function (device, platform) {
-            var controlsLocked = value == platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_ENABLED;
+            const controlsLocked = value == platform.Characteristic.LockPhysicalControls.CONTROL_LOCK_ENABLED;
             await device.setControlsLocked(controlsLocked);
             callback(null);
         });
@@ -263,7 +263,7 @@ class MiAirPurifierAccessory {
      */
     handleFilterLifeLevelGet(callback) {
         const getValue = (async function (device, platform) {
-            var filterRemaining = await device.getFilterRemaining();
+            let filterRemaining = await device.getFilterRemaining();
             if (filterRemaining == undefined) {
                 filterRemaining = 100;
             }

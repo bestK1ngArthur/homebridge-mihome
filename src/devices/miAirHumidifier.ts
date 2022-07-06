@@ -127,7 +127,7 @@ export class MiAirHumidifierAccessory {
    */
   handleRelativeHumidityHumidifierThresholdGet(callback) {
     const getTargetHumidity = (async function (device: mihome.Device, platform: MiHomePlatform) {
-      const targetHumidity = await device.getTargetHumidity()
+      const targetHumidity = await device.getTargetHumidity();
       callback(null, targetHumidity);
     });
 
@@ -139,7 +139,7 @@ export class MiAirHumidifierAccessory {
    */
   handleRelativeHumidityHumidifierThresholdSet(value: any, callback) {
     const setTargetHumidity = (async function (device: mihome.Device) {
-      await device.miioCall('Set_HumiValue', [value])
+      await device.miioCall('Set_HumiValue', [value]);
       callback(null);
     });
 
