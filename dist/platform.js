@@ -144,7 +144,7 @@ class MiHomePlatform {
                             platform.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
                         }
                         else if (rawDevice) {
-                            platform.log.info('Restoring existing accessory from cache:', existingAccessory.displayName, device, rawDevice);
+                            platform.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
                             // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
                             // existingAccessory.context.device = device;
                             // this.api.updatePlatformAccessories([existingAccessory]);
@@ -158,7 +158,7 @@ class MiHomePlatform {
                     }
                     else {
                         // the accessory does not yet exist, so we need to create it
-                        platform.log.info('Adding new accessory: ', mac, model, device, rawDevice);
+                        platform.log.info('Adding new accessory: ', mac, ' (', model, ')');
                         // create a new accessory
                         platform.configureNewAccessory(model, mac, uuid, device, rawDevice);
                     }
