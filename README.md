@@ -17,7 +17,7 @@ Control MiHome devices via homebridge. No need to get device token.
 1. Install node package.
 
 ```
-npm install -g git+https://github.com/bestK1ngArthur/homebridge-mihome
+npm install --location=global https://github.com/bestK1ngArthur/homebridge-mihome.git
 ```
 
 2. Add platform to config.
